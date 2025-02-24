@@ -5,38 +5,27 @@ import gdown
 import os
 from PIL import Image
 
-# Google Drive File ID (from your latest link)
+# ✅ Google Drive File ID (Latest)
 file_id = "1cJqVRrS5yXXVDE87ZY1jgdimUf85qeWl"
 model_path = "trained_plant_disease_model.keras"
 
-# 🔹 Function to load the model safely
+# ✅ Download model if not found
+if not os.path.exists(model_path):
+    gdown.download(f"https://drive.google.com/uc?id={file_id}", model_path, quiet=True)
+
+# ✅ Load model
 def load_model():
     try:
         return tf.keras.models.load_model(model_path, compile=False, safe_mode=False)
-    except Exception as e:
-        st.error(f"❌ Error Loading Model: {e}")
+    except:
         return None
 
-# 🔹 Download model if not found
-if not os.path.exists(model_path):
-    st.warning("📥 Downloading model from Google Drive...")
-    gdown.download(f"https://drive.google.com/uc?id={file_id}", model_path, quiet=False)
+model = load_model()
 
-# 🔹 Load the trained model
-model = None
-if os.path.exists(model_path):
-    model = load_model()
-    if model:
-        st.success("✅ Model Loaded Successfully!")
-    else:
-        st.error("⚠️ Model failed to load. Please check the file format and try again.")
-else:
-    st.error("⚠️ Model download failed. Try manually downloading and uploading the model.")
-
-# Define class labels for potato leaf diseases
+# ✅ Define class labels
 class_labels = ['Potato___Early_blight', 'Potato___Late_blight', 'Potato___Healthy']
 
-# Custom CSS for UI improvements
+# ✅ Custom CSS for Styling
 st.markdown(
     """
     <style>
@@ -84,19 +73,19 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Title
+# ✅ Title
 st.markdown('<div class="title">🥔 Potato Leaf Disease Classification</div>', unsafe_allow_html=True)
 
-# Upload Instruction inside the brown bar
+# ✅ Upload Instruction inside the brown bar
 st.markdown('<div class="upload-bar">Upload an image of a potato leaf to classify its disease.</div>', unsafe_allow_html=True)
 
-# File uploader
+# ✅ File uploader
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"], key="file_uploader")
 
 if uploaded_file is not None and model is not None:
     # Open and display the uploaded image
     image = Image.open(uploaded_file)
-    st.image(image, caption='Uploaded Image', width=350)
+    st.image(image, caption='Uploaded Image', use_container_width=False, width=350)
 
     # Ensure image is in RGB mode
     image = image.convert("RGB").resize((128, 128))
@@ -107,22 +96,21 @@ if uploaded_file is not None and model is not None:
     predicted_class = np.argmax(predictions, axis=1)[0]
     confidence = np.max(predictions)
 
-    # Define result styles and messages
-    if class_labels[predicted_class] == 'Potato___Early_blight':
-        result_class = "warning"
-        message = "⚠️ This leaf has Early Blight. Consider using fungicides and improving field management."
-    elif class_labels[predicted_class] == 'Potato___Late_blight':
-        result_class = "danger"
-        message = "🚨 This leaf has Late Blight. Immediate action is needed to prevent crop loss!"
-    else:
-        result_class = "healthy"
-        message = "✅ This potato leaf is healthy!"
+    # ✅ Define result styles and messages
+    result_class = "healthy" if class_labels[predicted_class] == 'Potato___Healthy' else \
+                   "warning" if class_labels[predicted_class] == 'Potato___Early_blight' else "danger"
 
-    # Display prediction results
+    messages = {
+        "Potato___Early_blight": "⚠️ Early Blight detected! Consider using fungicides.",
+        "Potato___Late_blight": "🚨 Late Blight detected! Immediate action required.",
+        "Potato___Healthy": "✅ This potato leaf is healthy!"
+    }
+
+    # ✅ Display prediction results with styling
     st.markdown(f"""
         <div class="prediction-box {result_class}">
             <p><strong>Predicted Class:</strong> {class_labels[predicted_class]}</p>
             <p><strong>Confidence:</strong> {confidence:.2f}</p>
-            <p>{message}</p>
+            <p>{messages[class_labels[predicted_class]]}</p>
         </div>
     """, unsafe_allow_html=True)
