@@ -17,15 +17,16 @@ if not os.path.exists(model_path):
 def load_model():
     try:
         return tf.keras.models.load_model(model_path, compile=False, safe_mode=False)
-    except:
+    except Exception as e:
+        st.error(f"❌ Error Loading Model: {e}")
         return None
 
 model = load_model()
 
-# Class labels for potato leaf diseases
+# Define class labels for potato leaf diseases
 class_labels = ['Potato___Early_blight', 'Potato___Late_blight', 'Potato___Healthy']
 
-# ✅ Keeping Your Original CSS
+# ✅ Custom CSS for Styling
 st.markdown(
     """
     <style>
@@ -73,30 +74,30 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Title
+# ✅ Title
 st.markdown('<div class="title">🥔 Potato Leaf Disease Classification</div>', unsafe_allow_html=True)
 
-# Upload Instruction
+# ✅ Upload Instruction Bar
 st.markdown('<div class="upload-bar">Upload an image of a potato leaf to classify its disease.</div>', unsafe_allow_html=True)
 
-# File uploader
+# ✅ File uploader
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "png", "jpeg"])
 
 if uploaded_file is not None and model is not None:
-    # ✅ Open and display the uploaded image (reduced size)
+    # ✅ Display uploaded image with reduced size
     image = Image.open(uploaded_file)
-    st.image(image, caption='Uploaded Image', width=300)  # 👈 Reduced size to 300px width
+    st.image(image, caption="Uploaded Image", width=300, use_container_width=False)
 
-    # Convert image to RGB and resize for model
+    # Convert image to RGB and resize
     image = image.convert("RGB").resize((128, 128))
     image_array = np.expand_dims(np.array(image), axis=0)
 
-    # ✅ Ensure prediction runs correctly
+    # ✅ Make Prediction
     predictions = model.predict(image_array)
     predicted_class = np.argmax(predictions, axis=1)[0]
     confidence = np.max(predictions)
 
-    # ✅ Fix the Prediction Box Not Showing
+    # ✅ Prediction Result Display with Original Styling
     if class_labels[predicted_class] == 'Potato___Early_blight':
         result_class = "warning"
         message = "⚠️ This leaf has Early Blight. Consider using fungicides and improving field management."
@@ -107,7 +108,7 @@ if uploaded_file is not None and model is not None:
         result_class = "healthy"
         message = "✅ This potato leaf is healthy!"
 
-    # ✅ Ensure the Prediction Box is Displayed
+    # ✅ Display Prediction Box
     st.markdown(f"""
         <div class="prediction-box {result_class}">
             <p><strong>Predicted Class:</strong> {class_labels[predicted_class]}</p>
