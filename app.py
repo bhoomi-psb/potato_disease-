@@ -16,7 +16,7 @@ if not os.path.exists(model_path):
 # Load model function
 def load_model():
     try:
-        return tf.keras.models.load_model(model_path, compile=False, safe_mode=False)
+        return tf.keras.models.load_model(model_path, compile=False)
     except Exception as e:
         st.error(f"❌ Error Loading Model: {e}")
         return None
